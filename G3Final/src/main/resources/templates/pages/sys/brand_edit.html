@@ -1,0 +1,115 @@
+<!-- Horizontal Form -->
+ <div class="box box-info">
+      <div class="box-header with-border">
+        <h3 class="box-title">添加角色</h3>
+      </div>
+      <!-- /.box-header -->
+      <!-- form start -->
+      <form class="form-horizontal">
+        <div class="box-body">
+          <div class="form-group">
+            <label for="corporatenameId" class="col-sm-2 control-label">公司名称</label>
+
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="corporatename" id="corporatenameId" placeholder="公司名称">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="addrId" class="col-sm-2 control-label">公司地址</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="addr" id="addrId" placeholder="公司地址">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="telId" class="col-sm-2 control-label">联系电话</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="tel" id="telId" placeholder="联系电话">
+            </div>
+          </div>
+         
+          <div class="form-group">
+            <label for="createdTimeId" class="col-sm-2 control-label">合同签订日期</label>
+            <div class="col-sm-10">
+              <input type="date" class="form-control" name="createdTime" id="createdTimeId"
+              placeholder="合同签订时间" value='{{ data.createdTime | date:"Y-m-d" }}'>
+            </div>
+          </div>
+           <!-- 
+          <div class="form-group">
+           <label for="endTimeId" class="col-sm-2 control-label">合同终止日期</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="endTime" id="endTimeId" placeholder="合同终止日期">
+            </div>
+          </div>
+           -->
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          <button type="button" class="btn btn-default btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-info pull-right btn-save">Save</button>
+        </div>
+        <!-- /.box-footer -->
+      </form>
+    </div>
+    <script type="text/javascript" src="bower_components/ztree/jquery.ztree.all.min.js"></script>
+    <script type="text/javascript">
+    $(function(){
+    	//异步加载菜单信息,初始化页面菜单
+    	$(".box-footer")
+    	.on("click",".btn-save",doSaveOrUpdate)
+    	.on("click",".btn-cancel",doCancel);
+    	var data=$("#mainContentId").data("data");
+  	  if(data)doInitEditFormData(data);
+    });
+    
+    function doInitEditFormData(data){
+    	console.log(data);
+		  $("#corporatenameId").val(data.corporatename);
+		  $("#addrId").val(data.addr);
+		  $("#telId").val(data.tel);
+		  $("#createdTimeId").val(data.createdTime);
+		 // $("#endTimeId").val(data.endTime);
+  }
+    
+    function doCancel(){
+    	var url="brand/brand_list";
+    	$("#mainContentId")
+    	.load(url,function(){
+    	  $("#mainContentId").removeData();
+    	});
+    }
+    function doSaveOrUpdate(){
+    	//1.参数(表单数据)
+    	var params=doGetEditFormData();
+    	console.log(params);
+    	if(params.corporatename==null){
+    		alert("角色名不能为空");
+    		return;
+    	}
+    	var data=$("#mainContentId").data("data");
+    	if(data)params.id=data.id;
+    	//2.url
+    	var insertUrl="brand/doSaveObjects";
+    	var updateUrl="brand/doUpdateObject";
+    	var url=data?updateUrl:insertUrl;
+    	//3.ajax request
+    	$.post(url,params,function(result){
+    		if(result.state==1){
+    		   alert(result.message);
+    		   doCancel();
+    		}else{
+    		   alert(result.message);
+    		}
+    	})
+    }
+    function doGetEditFormData(){
+    	var params={
+    		corporatename:$("#corporatenameId").val(),
+    		addr:$("#addrId").val(),
+    		tel:$("#telId").val(),
+    		//createdTime:$("#createdTimeId").val(),
+    		//endTime:$("#endTimeId").val()
+    	}
+    	return params;
+    }
+</script>

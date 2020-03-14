@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.cy.pj.sys.dao.SysCategoryDao">
+  	<select id="findCategoryById" resultType="com.cy.pj.sys.entity.SysCategory">
+  		select id, categoryName, createdTime, modifiedTime, createdUser, modifiedUser, parentId
+  		from sys_categories
+  		where id = #{id}
+  	</select>
+  	<select id="findAllCategories" resultType="com.cy.pj.sys.entity.SysCategory">
+  		select * from sys_categories where parentId is null
+  	</select>
+  	<select id="findZtreeCategoryNodes"
+		resultType="com.cy.pj.common.vo.Node">
+		select id, categoryName as name, parentId from sys_categories
+	</select>
+		<select id="findObjects" resultType="map">
+		select c.id, c.categoryName, c.createdTime, c.modifiedTime,
+		c.createdUser, c.modifiedUser, c.parentId,(
+		select p.categoryName
+		from
+		sys_categories p
+		where c.parentId=p.id
+		)
+		parentName
+		from sys_categories c
+		order by c.categoryName desc		<!-- 按类目名字母顺序排序 -->
+	</select>
+	<insert id="insertObject">
+		insert into sys_categories (categoryName,
+		createdTime, modifiedTime, createdUser, modifiedUser, parentId) values
+		(#{categoryName}, now(), now(),
+		#{createdUser},#{modifiedUser},
+		#{parentId})
+	</insert>
+  </mapper>

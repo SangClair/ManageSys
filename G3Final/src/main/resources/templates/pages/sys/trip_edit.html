@@ -1,0 +1,143 @@
+<!-- Horizontal Form -->
+ <div class="box box-info">
+      <div class="box-header with-border">
+        <h3 class="box-title">添加角色</h3>
+      </div>
+      <!-- /.box-header -->
+      <!-- form start -->
+      <form class="form-horizontal">
+        <div class="box-body">
+          <div class="form-group">
+            <label for="projectId" class="col-sm-2 control-label">项目名称</label>
+
+            <div class="col-sm-10">
+              <input type="text" class="form-control"  id="projectId" placeholder="项目名称">
+            </div>
+          </div>
+
+            <div class="form-group">
+                <label for="groupId" class="col-sm-2 control-label">团队名称</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="groupId" placeholder="团队名称">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="groupNum" class="col-sm-2 control-label">团队人数</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="groupNum" placeholder="团队人数">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="departure" class="col-sm-2 control-label">出发地</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="departure" placeholder="出发地">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="destination" class="col-sm-2 control-label">目的地</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="destination" placeholder="目的地">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="principal" class="col-sm-2 control-label">负责人</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="principal" placeholder="负责人">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="fund" class="col-sm-2 control-label">总资金</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="fund" placeholder="总资金">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="schedule" class="col-sm-2 control-label">目前所在地</label>
+
+                <div class="col-sm-10">
+                    <input type="text" class="form-control"  id="schedule" placeholder="目前所在地">
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          <button type="button" class="btn btn-default btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-info pull-right btn-save">Save</button>
+        </div>
+        <!-- /.box-footer -->
+      </form>
+    </div>
+<script type="text/javascript">
+
+    $(function(){
+        updatePage();
+        $(".box-footer")
+            .on("click",".btn-save",doSaveOrUpdate)
+            .on("click",".btn-cancel",doCancel);
+    });
+    function updatePage() {
+        var messages = $("#mainContentId").data("data");
+        if(messages) {
+            $("#projectId").prop("value", messages.projectName);
+            $("#groupId").prop("value", messages.name);
+            $("#groupNum").prop("value", messages.groupNumber);
+            $("#departure").prop("value", messages.departure);
+            $("#destination").prop("value", messages.destination);
+            $("#principal").prop("value", messages.principal);
+            $("#fund").prop("value", messages.fund);
+            $("#schedule").prop("value", messages.schedule);
+        }
+    }
+
+    function doCancel(){
+        var url="trip/trip_list";
+        $("#mainContentId").load(url,function () {
+            $("#mainContentId").removeData();
+        });
+    }
+    function doSaveOrUpdate(){
+        var messages = $("#mainContentId").data("data");
+        var id;
+        if(messages){
+            id = messages.id;
+        }
+        var projectName = $("#projectId").prop("value");
+        var name = $("#groupId").prop("value");
+        var groupNumber= $("#groupNum").prop("value");
+        var departure=$("#departure").prop("value");
+        var destination=$("#destination").prop("value");
+        var principal=$("#principal").prop("value");
+        var fund =$("#fund").prop("value");
+        var schedule=$("#schedule").prop("value");
+        var params = {
+            "id":id,
+            "projectName":projectName,
+            "name":name,
+            "groupNumber":groupNumber,
+            "departure":departure,
+            "destination":destination,
+            "principal":principal,
+            "fund":fund,
+            "schedule":schedule
+        }
+        var flag = $("#groupNum").val();
+
+        if(!flag){
+            var url = "trip/doUpdateGroup";
+        }else{
+            var url = "trip/doInsertGroup";
+        }
+
+        $.getJSON(url,params,function (result) {
+            alert(result.message);
+            doCancel();
+        })
+
+    }
+</script>

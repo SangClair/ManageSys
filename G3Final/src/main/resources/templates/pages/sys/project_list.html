@@ -1,0 +1,249 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">项目管理</h3>
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="关键字搜索">
+
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search"
+								id="searchBut">
+								<i class="fa fa-search"></i>
+							</button>
+							<button type="button" class="btn btn-default btn-add" id="addBut">添加</button>
+							<button type="button" class="btn btn-default btn-update"
+								id="updateBut">修改</button>
+							<button type="button" class="btn btn-default btn-delete"
+								id="deleteBut">删除</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<table id="projectTable" class="table table-hover">
+					<thead>
+						<tr>
+							<th></th>
+							<th>名字</th>
+							<th>价格(元)</th>
+							<th>最小团队人数</th>
+							<th>最大团队人数</th>
+							<th>项目创建日期</th>
+							<th>项目更新日期</th>
+							<th>项目简介</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId">
+						<tr>
+							<td colspan="8">数据正在加载中...</td>
+						</tr>
+					</tbody>
+				</table>
+				<h4>&nbsp&nbsp分类查看</h4>
+				<div class="sorts"></div>
+			</div>
+			<div id="pageId" class="box-footer clearfix"></div>
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+
+<script type="text/javascript"
+	src="bower_components/treegrid/jquery.treegrid.extension.js"></script>
+<script type="text/javascript"
+	src="bower_components/treegrid/jquery.treegrid.min.js"></script>
+<script type="text/javascript"
+	src="bower_components/treegrid/tree.table.js"></script>
+<script type="text/javascript">
+	$(function() {
+		init();
+		$(".input-group-btn").on("click", "#addBut", doChangeObjects);
+		$(".input-group-btn").on("click", "#deleteBut", doDeleteObjects);
+		$(".input-group-btn").on("click", "#searchBut", doSearchObjects);
+		$(".input-group-btn").on("click", "#updateBut", doChangeObjects);
+	})
+
+	function doDeleteObjects() {
+		var id = $("#tbodyId input[type='radio']:checked").val();
+		if (!id) {
+			alert("请选择需要删除的项目");
+			return;
+		}
+		var url = "project/doDeleteProject";
+		var params = {
+			"id" : id
+		};
+		if (!confirm("确定删除吗"))
+			return;
+		$.post(url, params, function(result) {//JsonResult
+			if (result.state == 1) {
+				init();
+			} else {
+				alert(result.message);
+			}
+		});
+	}
+	
+	function doGetObjects1(params) {
+		//var params = {"pageCurrent":1};
+		var url = "project/doFindAllProjects";
+		$.getJSON(url, params, doHandleQueryResponseResult);
+	}
+	
+	function doChangeObjects() {
+		var title;
+		if ($(this).hasClass("btn-add")) {
+			title = "添加项目";
+			doLoadPage(title);
+		} else if ($(this).hasClass("btn-update")) {
+			title = "修改项目";
+			var id = $("#tbodyId input[type='radio']:checked").val();
+			console.log(id);
+			if (!id) {
+				alert("请先选择");
+				return;
+			}
+			doFindProjectById(id, title);
+		}
+	}
+
+	function doFindProjectById(id, title) {
+		var params = {
+			"id" : id
+		};
+		var url = "project/doFindProjectById";
+		$.getJSON(url, params, function(result) {//JsonResult
+			if (result.state == 1) {
+				$("#mainContentId").data("rowData", result.data);
+				doLoadPage(title);
+			} else {
+				alert(result.message);
+			}
+		});
+	}
+
+	function doLoadPage(title) {
+		var url = "project/project_edit"
+		$("#mainContentId").load(url, function() {
+			$(".box-title").html(title);
+		})
+	}
+
+	function doSearchObjects() {
+		var searchNameId = $("#searchNameId").val();
+		$.getJSON("project/doFindProjects", "name=" + searchNameId
+				+ "&pageCurrent=1", doHandleQueryResponseResult);
+	}
+
+	function init() {
+		$('#pageId').load('doPageUI', function() {
+			doGetObjects();
+		});
+	}
+	function doGetObjects() {
+		var url = "/project/doFindAllProjects";
+		var param = "pageCurrent=1";
+		$.getJSON(url, param, doHandleQueryResults);
+		var url2 = "/category/doFindAllCategories";
+		$.getJSON(url2, "", doHandleQueryResultsOfCategory);
+	}
+
+	function doHandleQueryResponseResult(result) {
+		$("#checkAll").prop("checked", false);
+		console.log("1", result);
+		if (result.state == 1) {
+			doSetTableBodyRows(result.data.records);
+			doSetPagination(result.data);
+		} else {
+			let trs = "<tr><td colspan='8'>" + result.message + "</tr></td>";
+			$("#tbodyId").html(trs);
+			$(".rowCount").html("总记录数(0)");
+			$(".pageCount").html("总页数(0)");
+			$(".pageCurrent").html("当前页(1)");
+		}
+	}
+	function doHandleQueryResultsOfCategory(result) {
+		var records = result.data;
+		var tBut = "&nbsp&nbsp<button class='btn btn-default' onclick='init()'>全部</button>";
+		for (var i = 0; i < records.length; i++) {
+			var name = records[i].categoryName;
+			var but = "&nbsp&nbsp<button id='but" + records[i].id
+					+ "' class='btn btn-default' onclick='getChildCategories("
+					+ records[i].id + ")'> " + name + "</button>"
+			tBut += but;
+		}
+		$(".sorts").html(tBut);
+	}
+
+	function getChildCategories(id) {
+		$(".box-title").html("项目管理");
+		$("#but" + id).css("color", "grey");
+		var param = {
+			parentId : id
+		};
+		$.getJSON("category/doFindChildCategoriesByParentId", param,
+				createSubCategories);
+	}
+	function createSubCategories(result) {
+		var records = result.data;
+		var tBut = "&nbsp&nbsp<button class='btn btn-default' onclick='init()'>全部</button>";
+		for (var i = 0; i < records.length; i++) {
+			var name = records[i].categoryName;
+			var but = "&nbsp&nbsp<button id='but" + records[i].id
+					+ "' class='btn btn-default' onclick='searchByCategoryId("
+					+ records[i].id + ")'> " + name + "</button>"
+			tBut += but;
+		}
+		$(".sorts").html(tBut);
+	}
+
+	function searchByCategoryId(id) {
+		$.getJSON("project/doFindProjectsByParentId", "parentId=" + id
+				+ "&pageCurrent=1", doHandleQueryResponseResult);
+	}
+	function doHandleQueryResults(result) {
+		$("#checkAll").prop("checked", false);
+		if (result.state == 1) {
+			doSetTableBodyRows(result.data.records);
+			doSetPagination(result.data);
+		} else {
+			let trs = "<tr><td colspan='8'>" + result.message + "</tr></td>";
+			$("#tbodyId").html(trs);
+			$(".rowCount").html("总记录数(0)");
+			$(".pageCount").html("总页数(0)");
+			$(".pageCurrent").html("当前页(1)");
+		}
+	}
+
+	function doSetTableBodyRows(records) {
+		let trs = "";
+		for (let i = 0; i < records.length; i++) {
+			trs += "<tr><td><input type = 'radio' name='select' value='"
+					+ records[i].id
+					+ "'/>"
+					+ "<td>"
+					+ records[i].name
+					+ "</td>"
+					+ "<td>"
+					+ records[i].price
+					+ "</td>"
+					+ "<td>"
+					+ records[i].minMembers
+					+ "</td>"
+					+ "<td>"
+					+ records[i].maxMembers
+					+ "</td>"
+					+ "<td>"
+					+ new Date(records[i].createdDate).toLocaleString()
+					+ "</td>"
+					+ "<td>"
+					+ new Date(records[i].updatedDate).toLocaleString()
+					+ "</td>" + "<td>" + records[i].resume + "</td></tr>";
+		}
+		$("#tbodyId").html(trs);
+	}
+</script>

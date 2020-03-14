@@ -1,0 +1,75 @@
+<ul class="pagination pagination-sm no-margin pull-right">
+	<li><a class="first">首页</a></li>
+	<li><a class="pre">上一页</a></li>
+	<li><a class="next">下一页</a></li>
+	<li><a class="last">尾页</a></li>
+	<li><a class="rowCount">总记录数(0)</a></li>
+	<li><a class="pageCount">总页数(0)</a></li>
+	<li><a class="pageCurrent">当前页(1)</a></li>
+</ul>
+<script type="text/javascript">
+	$(function() {
+		$("#pageId").on("click", ".first, .last, .next, .pre", doJumpToPage);
+	})
+	function doSetPagination(data) {
+		$(".rowCount").html("总记录数(" + data.rowCount + ")");
+		$(".pageCount").html("总页数(" + data.pageCount + ")");
+		$(".pageCurrent").html("当前页(" + data.pageCurrent + ")");
+	}
+
+	function doJumpToPage() {
+		$("#checkAll").prop("checked", false);
+		var cls = $(this).prop("class");
+		var params = "";
+		var url = "log/doFindPageObjects";
+		var searchNameId = $("#searchNameId").val();
+		switch (cls) {
+		case "first":
+			params = "pageCurrent=1";
+			params += "&searchNameId=" + searchNameId;
+			doGetObjects1(params);
+			break;
+		case "pre":
+			var pageCurrentStr = $(".pageCurrent").html();
+			var pageCurrent = pageCurrentStr.substring(4,
+					pageCurrentStr.length - 1);
+			if (pageCurrent == 1) {
+				alert("当前已是首页");
+			} else {
+				params = "pageCurrent=" + (pageCurrent - 1);
+				params += "&searchNameId=" + searchNameId;
+				doGetObjects1(params);
+			}
+			break;
+		case "next":
+			var pageCurrentStr = $(".pageCurrent").html();
+			var pageCurrent = pageCurrentStr.substring(4,
+					pageCurrentStr.length - 1);
+			var pageCountStr = $(".pageCount").html();
+			var pageCount = pageCountStr.substring(4, pageCountStr.length - 1);
+			if (pageCurrent == pageCount) {
+				alert("当前已是尾页");
+			} else {
+				params = "pageCurrent=" + (pageCurrent - 0 + 1);
+				params += "&searchNameId=" + searchNameId;
+				doGetObjects1(params);
+			}
+			break;
+		case "last":
+			var pageCountStr = $(".pageCount").html();
+			var pageCount = pageCountStr.substring(4, pageCountStr.length - 1);
+			params = "pageCurrent=" + pageCount;
+			params += "&searchNameId=" + searchNameId;
+			doGetObjects1(params);
+			break;
+		}
+	};
+</script>
+
+
+
+
+
+
+
+

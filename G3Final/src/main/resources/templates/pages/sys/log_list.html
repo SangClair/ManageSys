@@ -1,0 +1,238 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">日志管理</h3>
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="用户名">
+
+						<div class="input-group-btn">
+							<button type="button" id="searchId"
+								class="btn btn-default btn-search">
+								<i class="fa fa-search"></i>
+							</button>
+							<button type="button" id="deleteId"
+								class="btn btn-default btn-delete">删除</button>
+							<button type="button" id="exportId"
+								class="btn btn-default btn-export">导出</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th><input type="checkbox" id="checkAll"
+								onclick="checkAll()">全选</th>
+							<th>用户名</th>
+							<th>操作</th>
+							<th>请求方法</th>
+							<th>请求参数</th>
+							<th>IP</th>
+							<th>执行时长</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId">
+						<tr>
+							<td colspan="7">数据正在加载中...</td>
+						</tr>
+					</tbody>
+				</table>
+				<h4>&nbsp&nbsp文件导入</h4>
+				<input type="file" name="table_file" id="ImportId"
+					style='display: inline-block' accept=".xls,.xlsx"
+					placeholder="选取本地文件">
+				<button type="button" class="btn btn-default btn-import"
+					onclick="doImport()">导入</button>
+			</div>
+			<div id="pageId" class="box-footer clearfix"></div>
+			<!-- /.box-body -->
+			<input type="file" autocomplete="新导出表格" accept=".xls" id="filepath" style="display:none" />
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script type="text/javascript">
+	$(function() {
+		$('#pageId').load('doPageUI', function() {
+			doGetObjects();
+		});
+		$(".input-group-btn").on("click", "#searchId", doSearchObjects);
+		$(".input-group-btn").on("click", "#deleteId", doDeleteObjects);
+		$(".input-group-btn").on("click", "#exportId", doExportObjects);
+	});
+
+	function doImport() {
+		var formData = new FormData();
+		formData.append("upload",$("#ImportId")[0].files[0]);
+		console.log(formData);
+		$.ajax({
+			  type: 'POST',
+			  url: 'log/doImportLogs',
+			  data: formData,
+			  processData: false,   // jQuery不要去处理发送的数据
+			  contentType: false,   // jQuery不要去设置Content-Type请求头
+			  success: function(res){
+					alert(res.message);
+					doGetObjects();
+			  }
+			});
+	}
+
+	function doExportObjects() {
+		var checked = $("#tbodyId input[type='checkbox']");
+		var checkedId = [];
+		for ( var i in checked) {
+			if (checked[i].checked) {
+				checkedId.push(checked[i].value);
+			}
+		}
+		if (checkedId.length == 0) {
+			alert("请至少选择一个");
+			return;
+		}
+		$("#filepath").click(function() {
+			
+			
+			
+		});
+		var name = prompt("请输入文件名", "新日历表格");
+		$.ajax({
+			type : "post",
+			url : "log/doExportLogs",
+			data : {
+				"ids" : checkedId,
+				"fileName" : name
+			},
+			traditional : true,
+			success : function(result) {
+				alert(result.message)
+			}
+		});
+	}
+
+	function checkAll() {
+		var status = $("#checkAll").prop("checked");
+		$("input[type='checkbox']:not(.pull-right)").prop("checked", status);
+	}
+
+	function switchCheckAll(e) {
+		var status = $(e).prop("checked");
+		if (!status) {
+			$("#checkAll").prop("checked", false);
+		} else {
+			var o = $("#tbodyId input[type='checkbox']").not("#checkAll");
+			for (var i = 0; i < o.length; i++) {
+				if (!($(o[i]).prop("checked"))) {
+					return;
+				}
+			}
+			$("#checkAll").prop("checked", true);
+		}
+	}
+
+	function doDeleteObjects() {
+		var checked = $("#tbodyId input[type='checkbox']");
+		var checkedId = [];
+		for ( var i in checked) {
+			if (checked[i].checked) {
+				checkedId.push(checked[i].value);
+			}
+		}
+		if (checkedId.length == 0) {
+			alert("请至少选择一个");
+			return;
+		}
+
+		if (!confirm("确定删除吗"))
+			return;
+
+		$.ajax({
+			type : "post",
+			url : "log/doDeleteObjects",
+			data : {
+				"ids" : checkedId
+			},
+			traditional : true,
+		});
+		var pageCurrentStr = $(".pageCurrent").html();
+		var pageCurrent = pageCurrentStr
+				.substring(4, pageCurrentStr.length - 1) - 0;
+		var pageCountStr = $(".pageCount").html();
+		var pageCount = pageCountStr.substring(4, pageCountStr.length - 1) - 0;
+		if (pageCurrent == pageCount && pageCurrent != 1
+				&& $("#checkAll").prop("checked")) {
+			pageCurrent--;
+		}
+		var params = "pageCurrent=" + pageCurrent;
+		var url = "log/doFindPageObjects";
+		$.getJSON(url, params, doHandleQueryResponseResult);
+	}
+
+	function doSearchObjects() {
+		var searchNameId = $("#searchNameId").val();
+		$.getJSON("log/doFindPageObjects", "searchNameId=" + searchNameId
+				+ "&pageCurrent=1", doHandleQueryResponseResult);
+	}
+	function doGetObjects1(params) {
+		//var params = {"pageCurrent":1};
+		var url = "log/doFindPageObjects";
+		$.getJSON(url, params, doHandleQueryResponseResult);
+	}
+
+	function doGetObjects() {
+		var params = "pageCurrent=1";
+		//var params = {"pageCurrent":1};
+		var url = "log/doFindPageObjects";
+		$.getJSON(url, params, doHandleQueryResponseResult);
+	}
+
+	function doHandleQueryResponseResult(result) {
+		$("#checkAll").prop("checked", false);
+		if (result.state == 1) {
+			doSetTableBodyRows(result.data.records);
+			doSetPagination(result.data);
+		} else {
+			let trs = "<tr><td colspan='7'>" + result.message + "</tr></td>";
+			$("#tbodyId").html(trs);
+			$(".rowCount").html("总记录数(0)");
+			$(".pageCount").html("总页数(0)");
+			$(".pageCurrent").html("当前页(1)");
+		}
+	}
+
+	function doSetTableBodyRows(records) {
+		let trs = "";
+		for (let i = 0; i < records.length; i++) {
+			trs += "<tr><td><input type = 'checkbox' onclick='switchCheckAll(this)' value='"
+					+ records[i].id
+					+ "'/></td>"
+					+ "<td>"
+					+ records[i].username
+					+ "</td>"
+					+ "<td>"
+					+ records[i].operation
+					+ "</td>"
+					+ "<td>"
+					+ records[i].method
+					+ "</td>"
+					+ "<td>"
+					+ records[i].params
+					+ "</td>"
+					+ "<td>"
+					+ records[i].ip
+					+ "</td>" + "<td>" + records[i].time + "</td></tr>";
+		}
+		$("#tbodyId").html(trs);
+	}
+</script>
+
+
+
+
+
+

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cy.pj.sys.dao.SysTripDao">
+    <select id="findGroups" resultType="com.cy.pj.sys.entity.SysTripGroup">
+        select * from
+            (select g.id,p.name projectName,
+            g.name ,g.groupNumber,g.departure,
+            g.destination,g.principal,g.fund,g.schedule
+            from
+            sys_projects p, sys_groups g
+            where
+            p.id = g.projectId) a
+        <where>
+            <if test="username != null and username != ''">
+                name like concat("%",#{username},"%")
+            </if>
+        </where>
+    </select>
+
+    <!--
+    <select id="findGroups" resultType="com.gl.pj.sys.entity.SysTripGroup">
+        select g.id,p.name projectName,g.name ,g.groupNumber,g.departure,g.destination,g.principal,g.fund,g.schedule
+        from sys_projects p, sys_groups g
+        where p.id = g.projectId
+    </select>
+    -->
+
+    <delete id="deleteTripGroupById">
+        delete from sys_groups where id = #{id}
+    </delete>
+
+    <select id="FindGroupById" resultType="com.cy.pj.sys.entity.SysTripGroup">
+         select g.id,p.name projectName,g.name ,g.groupNumber,g.departure,g.destination,g.principal,g.fund,g.schedule
+        from sys_projects p, sys_groups g
+        where p.id = g.projectId and g.id = #{id}
+    </select>
+
+    <update id="updateGroup">
+        update sys_groups set name=#{name},groupNumber=#{groupNumber},departure=#{departure},
+                  destination=#{destination},principal=#{principal},fund=#{fund},projectId=#{projectId},schedule=#{schedule}
+        where id = #{id}
+    </update>
+    <select id="findProjectId" resultType="int">
+        select id from sys_projects
+        where name = #{username}
+    </select>
+
+    <insert id="insertGroups" parameterType="com.cy.pj.sys.entity.SysTripGroup">
+        insert into sys_groups values(null,#{name},#{groupNumber},#{departure},#{destination},#{principal},
+        #{fund},#{projectId},#{schedule})
+    </insert>
+
+</mapper>
+
+
+
+
